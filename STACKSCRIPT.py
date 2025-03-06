@@ -223,6 +223,8 @@ def execute(instruction:str):
         mem.push(random.randint(parts[1],parts[2]))
     elif opcode == "RANDOM":
         mem.push(random.random() * parts[1])
+    elif opcode == "SYSTEM":
+        os.system(parts[1])
     if currentfunc is not None:
         functions[currentfunc].append(instruction)
 while index <= len(program) - 1:
