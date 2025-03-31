@@ -106,7 +106,7 @@ def execute(instruction:str):
                 print("not a number")
     elif opcode == "JMP" and currentfunc is None:
         jump_occured = True
-        index = int(parts[1])
+        index = int(parts[1]) - 1
     elif opcode == "JMP.EQ" and currentfunc is None:
         if mem.top() == float(parts[2]):
             index = int(parts[1])
@@ -209,7 +209,7 @@ def execute(instruction:str):
     elif opcode == "DELETEFILE":
         os.system(f"rm {parts[1]}")
     elif opcode == "CREATEFILE":
-        os.system(f"echo {parts[2]} >> {parts[1]}")
+        os.system(f"echo {" ".join(parts[2:])} >> {parts[1]}")
     elif opcode == "CREATEFOLDER":
         os.mkdir(parts[1])
     elif opcode == "DELETEFOLDER":
@@ -220,14 +220,15 @@ def execute(instruction:str):
         mem.mem = mem3
         mem2.mem = mem1
     elif opcode == "RANDINT":
-        mem.push(random.randint(parts[1],parts[2]))
+        mem.push(random.randint(int(parts[1]),int(parts[2])))
     elif opcode == "RANDOM":
-        mem.push(random.random() * parts[1])
+        mem.push(random.random() * float(parts[1]))
+    elif opcode == "SYSTEM":
+        os.system(" ".join(parts[1:]))
     if currentfunc is not None:
         functions[currentfunc].append(instruction)
 while index <= len(program) - 1:
     execute(program[index])
     if not jump_occured:
         index += 1
-
 
