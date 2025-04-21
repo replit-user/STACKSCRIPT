@@ -69,14 +69,18 @@ jump_occurred = False
 def execute(instruction: str):
     global current_function, program_counter, jump_occurred
 
+    # Remove comments
+    if "#" in instruction:
+        instruction = instruction.split("#", 1)[0].strip()
+
+    # Ignore empty lines
+    if not instruction:
+        return
+
     # Handle multiple instructions on the same line
     if ";" in instruction:
         for instr in instruction.split(";"):
             execute(instr.strip())
-        return
-
-    # Ignore empty lines
-    if not instruction:
         return
 
     parts = instruction.split()
