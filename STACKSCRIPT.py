@@ -2,233 +2,232 @@ from sys import argv
 from collections import defaultdict
 import os
 import random
+
+# Load the program
 path = argv[1]
+with open(path, "r") as f:
+    program = [line.strip() for line in f]
 
-
-with open(path,"r") as f:
-    program = f.readlines()
-    i = 0
-    for line in program:
-        program[i] = line.strip()
-        i += 1
-
-
-functions = defaultdict(list)
-
-
-currentfunc = None
-
-
-index = 0
-
-
-jump_occured = False
-
-
-
-
-path = argv[1]
-
-
-class stack:
-    def __init__(self,size):
+# Memory Structures
+class Stack:
+    def __init__(self, size):
         self.size = size
-        self.mem = [0 for _ in range(self.size)]
-        self.pointer = 0
+        self.mem = [0] * size
+        self.pointer = -1
+
+    def push(self, value):
+        try:
+            value = float(value)
+        except ValueError:
+            print("Error: Not a number")
+            exit(1)
+        self.pointer += 1
+        self.mem[self.pointer] = value
+
     def pop(self):
-        number = self.mem[self.pointer]
+        if self.pointer < 0:
+            print("Error: Stack underflow")
+            exit(1)
+        value = self.mem[self.pointer]
         self.mem[self.pointer] = 0
         self.pointer -= 1
-        return number
-    def push(self,number:float|int):
-        try:
-            number = float(number)
-        except ValueError:
-            print("not a number")
-            exit()
-        self.pointer += 1
-        self.mem[self.pointer] = number
+        return value
+
     def top(self):
+        if self.pointer < 0:
+            print("Error: Stack empty")
+            exit(1)
         return self.mem[self.pointer]
-   
 
+    def clear(self):
+        self.mem = [0] * self.size
+        self.pointer = -1
 
-
-
-
-
-class secondstack:
-    def __init__(self,size):
+class SecondaryStack:
+    def __init__(self, size):
         self.size = size
-        self.mem = [0 for _ in range(size)]
-        self.pointer = 0
-    def push(self,num):
+        self.mem = [0] * size
+        self.pointer = -1
+
+    def push(self, value):
         self.pointer += 1
-        self.mem[self.pointer] = num
+        self.mem[self.pointer] = value
 
+# Initialize memory
+main_stack = Stack(500000)
+secondary_stack = SecondaryStack(500000)
 
+# Function storage
+functions = defaultdict(list)
+current_function = None
 
+# Program control
+program_counter = 0
+jump_occurred = False
 
+# Core execution function
+def execute(instruction: str):
+    global current_function, program_counter, jump_occurred
 
-
-
-
-mem = stack(500000)
-mem2 = secondstack(500000)
-
-
-
-
-
-
-
-
-def execute(instruction:str):
+    # Handle multiple instructions on the same line
     if ";" in instruction:
-        instr = instruction.split(";")[0]
-        execute(instr)
-    global jump_occured,index,currentfunc
-    parts = instruction.split(" ")
+        for instr in instruction.split(";"):
+            execute(instr.strip())
+        return
+
+    # Ignore empty lines
+    if not instruction:
+        return
+
+    parts = instruction.split()
     opcode = parts[0]
+
+    # --- Operations ---
     if opcode == "READ":
-        number = input("enter a number: ")
-        if "." in number:
-            try:
-                number = float(number)
-                mem.push(number)
-            except ValueError:
-                print("not a number")
+        value = input("Enter a number: ")
+        main_stack.push(value)
+
+    elif opcode.startswith("JMP") and current_function is None:
+        target = int(parts[1]) - 1
+        condition_met = False
+
+        if opcode == "JMP":
+            condition_met = True
+        elif opcode == "JMP.EQ" and main_stack.top() == float(parts[2]):
+            condition_met = True
+        elif opcode == "JMP.GT" and main_stack.top() < float(parts[2]):
+            condition_met = True
+        elif opcode == "JMP.LT" and main_stack.top() > float(parts[2]):
+            condition_met = True
+        elif opcode == "JMP.GTE" and main_stack.top() <= float(parts[2]):
+            condition_met = True
+        elif opcode == "JMP.LTE" and main_stack.top() >= float(parts[2]):
+            condition_met = True
+
+        if condition_met:
+            program_counter = target
+            jump_occurred = True
         else:
-            try:
-                number = int(number)
-                mem.push(number)
-            except ValueError:
-                print("not a number")
-    elif opcode == "JMP" and currentfunc is None:
-        jump_occured = True
-        index = int(parts[1]) - 1
-    elif opcode == "JMP.EQ" and currentfunc is None:
-        if mem.top() == float(parts[2]):
-            index = int(parts[1])
-            jump_occured = True
-        else:
-            jump_occured = False
-    elif opcode == "JMP.GT" and currentfunc is None:
-        if mem.top() < float(parts[2]):
-            index = int(parts[1])
-            jump_occured = True
-        else:
-            jump_occured = False
-    elif opcode == "JMP.LT" and currentfunc is None:
-        if mem.top() > float(parts[2]):
-            index = int(parts[1])
-            jump_occured = True
-        else:
-            jump_occured = False
-    elif opcode == "JMP.GTE" and currentfunc is None:
-        if mem.top() <= float(parts[2]):
-            index = int(parts[1])
-            jump_occured = True
-        else:
-            jump_occured = False
-    elif opcode == "JMP.LTE" and currentfunc is None:
-        if mem.top() >= float(parts[2]):
-            index = int(parts[1])
-            jump_occured = True
-        else:
-            jump_occured = False
-    elif opcode == "PUSH" and currentfunc == None:
-        mem.push(parts[1])
-    elif opcode == "POP" and currentfunc == None:
-        mem.pop()
+            jump_occurred = False
+
+    elif opcode == "PUSH":
+        main_stack.push(parts[1])
+
+    elif opcode == "POP":
+        main_stack.pop()
+
     elif opcode == "HALT":
-        if currentfunc == None:
-            jump_occured = False
-            exit()
+        if current_function is None:
+            exit(0)
         else:
-            currentfunc = None
-    elif opcode in ["ADD","SUB","DIV","MUL","EXP"] and currentfunc == None:
-        jump_occured = False
-        a = mem.pop()
-        b = mem.pop()
-        if opcode == "ADD":
-            mem.push(a + b)
-        elif opcode == "SUB":
-            mem.push(a - b)
-        elif opcode == "MUL":
-            mem.push(a * b)
-        elif opcode == "DIV":
-            mem.push(a / b)
-        elif opcode == "EXP":
-            mem.push(a ** b)
-    elif opcode == "OUT" and currentfunc is None:
+            current_function = None
+
+    elif opcode in {"ADD", "SUB", "MUL", "DIV", "EXP"}:
+        b = main_stack.pop()
+        a = main_stack.pop()
+        result = {
+            "ADD": a + b,
+            "SUB": a - b,
+            "MUL": a * b,
+            "DIV": a / b,
+            "EXP": a ** b
+        }[opcode]
+        main_stack.push(result)
+
+    elif opcode == "OUT":
         print(" ".join(parts[1:]))
-    elif opcode == "OUTV" and currentfunc is None:
-        print(mem.top())
+
+    elif opcode == "OUTV":
+        print(main_stack.top())
+
     elif opcode == "BOTOP":
-        mem.push(mem.mem[0])
+        main_stack.push(main_stack.mem[0])
+
     elif opcode == "CLEAR":
-        mem.mem = [0 for i in range(mem.size)]
-        mem.pointer = 0
+        main_stack.clear()
+
     elif ":" in opcode:
-        functions[opcode.replace(":","")] = []
-        currentfunc = opcode.replace(":","")
+        function_name = opcode.rstrip(":")
+        current_function = function_name
+
     elif opcode == "CALL":
-        for instruct in functions[parts[1]]:
-            execute(instruct)
+        func_name = parts[1]
+        for instr in functions[func_name]:
+            execute(instr)
+
     elif opcode == "ENDFUNC":
-        jump_occured = False
-        currentfunc = None
+        current_function = None
+
     elif opcode == "COPY":
-        mem.push(mem.mem[int(parts[1])])
+        address = int(parts[1])
+        main_stack.push(main_stack.mem[address])
+
     elif opcode == "DUP":
-        mem.push(mem2.mem[mem2.pointer])
+        main_stack.push(secondary_stack.mem[secondary_stack.pointer])
+
     elif opcode == "SPUSH":
-        mem2.push(float(parts[1]))
+        secondary_stack.push(float(parts[1]))
+
     elif opcode == "SPREAD":
-        try:
-            number = float(input("enter a number: "))
-            execute(f"SPUSH {number}")
-        except ValueError as e:
-            print("not a valid number: " + e)
+        value = input("Enter a number: ")
+        main_stack.push(value)
+
     elif opcode == "PUD":
-        mem2.push(mem.top())
+        secondary_stack.push(main_stack.top())
+
     elif opcode == "SWAP":
-        mem.mem[int(parts[1])] = int(parts[2])
-        mem.mem[int(parts[2])] = int(parts[1])
+        addr1 = int(parts[1])
+        addr2 = int(parts[2])
+        main_stack.mem[addr1], main_stack.mem[addr2] = main_stack.mem[addr2], main_stack.mem[addr1]
+
     elif opcode == "READFILE":
-        with open(parts[1],"r") as f:
-            text = f.read()
-            print(text)
+        with open(parts[1], "r") as f:
+            print(f.read())
+
     elif opcode == "WRITEFILE":
-        with open(parts[1],"w") as f:
-            f.write(parts[2:])
+        with open(parts[1], "w") as f:
+            f.write(" ".join(parts[2:]))
+
     elif opcode == "APPENDFILE":
-        with open(parts[1],"a") as f:
-            f.write(parts[2])
+        with open(parts[1], "a") as f:
+            f.write(" ".join(parts[2:]))
+
     elif opcode == "DELETEFILE":
-        os.system(f"rm {parts[1]}")
+        os.remove(parts[1])
+
     elif opcode == "CREATEFILE":
-        os.system(f"echo {" ".join(parts[2:])} >> {parts[1]}")
+        with open(parts[1], "w") as f:
+            f.write(" ".join(parts[2:]))
+
     elif opcode == "CREATEFOLDER":
         os.mkdir(parts[1])
+
     elif opcode == "DELETEFOLDER":
         os.rmdir(parts[1])
+
     elif opcode == "SWAPMEM":
-        mem1 = mem.mem
-        mem3 = mem2.mem
-        mem.mem = mem3
-        mem2.mem = mem1
+        main_stack.mem, secondary_stack.mem = secondary_stack.mem, main_stack.mem
+
     elif opcode == "RANDINT":
-        mem.push(random.randint(int(parts[1]),int(parts[2])))
+        main_stack.push(random.randint(int(parts[1]), int(parts[2])))
+
     elif opcode == "RANDOM":
-        mem.push(random.random() * float(parts[1]))
+        main_stack.push(random.random() * float(parts[1]))
+
     elif opcode == "SYSTEM":
         os.system(" ".join(parts[1:]))
-    if currentfunc is not None:
-        functions[currentfunc].append(instruction)
-while index <= len(program) - 1:
-    execute(program[index])
-    if not jump_occured:
-        index += 1
 
+    else:
+        print(f"Unknown opcode: {opcode}")
+
+    # Save function instructions if inside a function
+    if current_function:
+        functions[current_function].append(instruction)
+
+# --- Main Execution Loop ---
+while program_counter < len(program):
+    execute(program[program_counter])
+    if not jump_occurred:
+        program_counter += 1
+    else:
+        jump_occurred = False
