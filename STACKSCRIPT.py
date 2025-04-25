@@ -4,6 +4,7 @@ import os
 import random
 functions = defaultdict(list)
 program_counter = 0
+compare_slot = False
 PATH = argv[1]
 SIZE = 30000
 with open(PATH,"r") as f:
@@ -14,21 +15,14 @@ with open(PATH,"r") as f:
 class stack:
     def __init__(self,size):
         self.mem = [0 for i in range(size)]
-        self.pointer = 0
+        self.pointer = 1
     def push(self,num):
-        try:
-            if not "." in num:
-                num = int(num)
-            else:
-                num = float(num)
-
-        except TypeError:
-            print("not a number")
+        num = int(num)
         self.mem[self.pointer] = num
         self.pointer += 1
     def pop(self):
         self.pointer -= 1
-        return self.mem[self.pointer + 1]
+        return self.mem[self.pointer]
     def top(self):
         return self.mem[self.pointer - 1]
 
@@ -36,15 +30,9 @@ class stack:
 class secondarstack:
     def __init__(self,size):
         self.mem = [0 for i in range(size)]
-        self.pointer = 0
+        self.pointer = 1
     def push(self,num):
-        try:
-            if not "." in num:
-                num = int(num)
-            else:
-                num = float(num)
-        except ValueError:
-            print("not a number")
+        num = int(num)
         self.mem[self.pointer] = num
         self.pointer += 1
     def top(self):
@@ -82,38 +70,44 @@ def execute(instruction:str) -> None:
     elif not instruction:
         return None
     elif opcode == "READ":
-        num = input("enter a number: ")
-        if "." in num:
-            try:
-                num = float(num)
-            except ValueError:
-                print("must be a number")
-                exit()
-            mem.push(num)
-        else:
-            try:
-                num = int(num)
-            except ValueError:
-                print("must be a number")
-                exit()
-        mem.push(num)
+        num = input("Enter a number: ").strip()
+        try:
+            if '.' in num:  # Check if it's a float
+                mem.push(float(num))  # Push as float if it contains a dot
+            else:  # Otherwise, it's an integer
+                mem.push(int(num))  # Push as integer
+        except ValueError:
+            print("Invalid input. Please enter a valid number.")
+            exit()
+
+    elif opcode == "SPREAD":
+        num = input("Enter a number: ").strip()
+        try:
+            if '.' in num:  # Check if it's a float
+                mem2.push(float(num))  # Push as float if it contains a dot
+            else:  # Otherwise, it's an integer
+                mem2.push(int(num))  # Push as integer
+        except ValueError:
+            print("Invalid input. Please enter a valid number.")
+            exit()
     elif opcode.startswith("JMP"):
         target = int(parts[1]) - 1
         condition_met = False
 
         if opcode == "JMP":
             condition_met = True
-        elif opcode == "JMP.EQ" and mem.top() == float(parts[2]):
-            condition_met = True
-        elif opcode == "JMP.GT" and mem.top() < float(parts[2]):
-            condition_met = True
-        elif opcode == "JMP.LT" and mem.top() > float(parts[2]):
-            condition_met = True
-        elif opcode == "JMP.GTE" and mem.top() <= float(parts[2]):
-            condition_met = True
-        elif opcode == "JMP.LTE" and mem.top() >= float(parts[2]):
-            condition_met = True
-
+        elif opcode == "JMPGT":
+            if mem.top() > int(parts[1]):
+                condition_met = True
+                target = int(parts[2])
+        elif opcode == "JMPLT":
+            if mem.top() < int(parts[1]):
+                condition_met = True
+                target = int(parts[2])
+        elif opcode == "JMPEQ":
+            if mem.top() == int(parts[1]):
+                condition_met = True
+                target = int(parts[2])
         if condition_met:
             program_counter = target
             jump_occurred = True
@@ -128,16 +122,18 @@ def execute(instruction:str) -> None:
     elif opcode in {"ADD", "SUB", "MUL", "DIV", "EXP"}:
         b = mem.pop()
         a = mem.pop()
-        result = {
-            "ADD": a + b,
-            "SUB": a - b,
-            "MUL": a * b,
-            "DIV": a / b,
-            "EXP": a ** b
-        }[opcode]
-        mem.push(result)
+        if opcode == "ADD":
+            mem.push(b + a)
+        elif opcode == "SUB":
+            mem.push(b - a)
+        elif opcode == "MUL":
+            mem.push(b * a)
+        elif opcode == "DIV":
+            mem.push((b // (a + 1)) - 1) #insure no division by 0
+        elif opcode == "EXP":
+            mem.push(b ** a)
     elif opcode == "OUT":
-        print(parts[1:])
+        print(" ".join(parts[1:]))
     elif opcode == "BOTOP":
         mem.push(mem.mem[0])
     elif opcode == "CLEAR":
@@ -151,22 +147,6 @@ def execute(instruction:str) -> None:
         mem.push(num)
     elif opcode == "DUP":
         mem.push(mem2.top())
-    elif opcode == "SREAD":
-        num = input("enter a number: ")
-        if "." in num:
-            try:
-                num = float(num)
-            except ValueError:
-                print("must be a number")
-                exit()
-            mem.push(num)
-        else:
-            try:
-                num = int(num)
-            except ValueError:
-                print("must be a number")
-                exit()
-        mem2.push(num)
     elif opcode == "SPUSH":
         mem2.push(parts[1])
     elif opcode == "PUD":
@@ -222,6 +202,8 @@ def execute(instruction:str) -> None:
         mem.push(random.random() * float(parts[1]))
     elif opcode == "SYSTEM":
         os.system(parts[1])
+    elif opcode == "OUTV":
+        print(mem.top())
     else:
         print(f"unrecognized opcode: {opcode}")
         exit()
