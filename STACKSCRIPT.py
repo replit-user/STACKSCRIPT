@@ -204,10 +204,9 @@ def execute(instruction:str) -> None:
         os.system(parts[1])
     elif opcode == "OUTV":
         print(mem.top())
-    elif not ":" in opcode:
-        print(f"unrecognized opcode: {opcode}")
     else:
-        None
+        print(f"unrecognized opcode: {opcode}")
+        exit()
 
 
 #main logic
