@@ -202,7 +202,7 @@ def execute(instruction: str) -> None:
     elif opcode == "DELETEFOLDER":
         os.rmdir(parts[1])
     elif opcode == "SWAPMEM":
-        mem.mem, mem2.mem = mem2.mem, mem.mem
+        mem.mem,mem.pointer,mem2.mem,mem2.pointer = mem2.mem,mem2.pointer,mem.mem,mem.pointer
     elif opcode == "CHOICE-1":
         mem.push(random.choice(parts[1:]))
     elif opcode == "CHOICE-2":
