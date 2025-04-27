@@ -216,6 +216,8 @@ def execute(instruction: str) -> None:
         os.system(parts[1])
     elif opcode == "OUTV":
         print(mem.top())
+    elif opcode == "TOP":
+        mem.push(mem.top())
     else:
         if not opcode.endswith(":"):
             print(f"Unrecognized opcode: {opcode}")
