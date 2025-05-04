@@ -17,7 +17,7 @@ STACKSCRIPT is a custom stack-based scripting language designed for educational 
 ## Basic Usage
 
 ```bash
-python STACKSCRIPT.py path/to/code.ss
+python STACKSCRIPT.py path/to/code.stack
 ```
 
 ---
