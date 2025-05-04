@@ -11,10 +11,10 @@ STACKSCRIPT is a minimalist, stack-based scripting language with two memory stac
 To run a script:
 
 ```bash
-python3 interpreter.py yourscript.stack
+python3 STACKSCRIPT.py yourscript.stack
 ```
 
-Replace `interpreter.py` with the filename of the interpreter, and `yourscript.stack` with your STACKSCRIPT file.
+Replace `yourscript.stack` with your STACKSCRIPT file.
 
 ---
 
