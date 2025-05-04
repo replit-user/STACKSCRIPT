@@ -23,7 +23,6 @@ class stack:
         self.pointer = 1
 
     def push(self, num):
-        num = int(num)
         self.mem[self.pointer] = num
         self.pointer += 1
 
@@ -40,7 +39,6 @@ class secondarstack:
         self.pointer = 1
 
     def push(self, num):
-        num = int(num)
         self.mem[self.pointer] = num
         self.pointer += 1
 
@@ -143,7 +141,10 @@ def execute(instruction: str, current_module: Optional[str] = None) -> None:
             program_counter = target
             jump_occurred = True
     elif opcode == "PUSH":
-        mem.push(parts[1])
+        if "." in parts[1]:
+            mem.push(float(parts[1]))
+        else:
+            mem.push(int(parts[1]))
     elif opcode == "POP":
         mem.pop()
     elif opcode == "HALT":
@@ -161,7 +162,7 @@ def execute(instruction: str, current_module: Optional[str] = None) -> None:
             if b == 0:
                 mem.push(0)
             else:
-                mem.push(a // b)
+                mem.push(a / b)
         elif opcode == "EXP":
             mem.push(a ** b)
     elif opcode == "OUT":
@@ -204,6 +205,10 @@ def execute(instruction: str, current_module: Optional[str] = None) -> None:
     elif opcode == "DUP":
         mem.push(mem2.top())
     elif opcode == "SPUSH":
+        if "." in parts[1]:
+            mem2.push(float(parts[1]))
+        else:
+            mem2.push(int(parts[1]))
         mem2.push(parts[1])
     elif opcode == "PUD":
         mem2.push(mem.top())

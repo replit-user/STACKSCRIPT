@@ -69,9 +69,53 @@ python STACKSCRIPT.py path/to/code.stack
 
 ## Functions & Modules
 
-* Define functions using `funcname:` and terminate with `ENDFUNC`
-* Use `CALL funcname` or `CALL module.funcname` to call functions
-* Use `EXPORT funcname` in a module to make it available externally
+to define a function
+```stackscript
+
+myfunc:
+;code here
+ENDFUNC
+```
+
+for modules for example this math one I made:
+
+```stackscript
+SQR:
+TOP
+MUL
+ENDFUNC
+
+SQRT:
+PUSH 1
+PUSH 2
+DIV
+EXP
+ENDFUNC
+
+PI:
+PUSH 3.14159 ;A ROUGH APROXIMATION
+ENDFUNC
+
+E:
+PUSH 2.179 ;A ROUGH APROXIMATION
+ENDFUNC
+
+
+PHI:
+PUSH 1.1618
+ENDFUNC
+
+```
+
+but that was the main code, here is math.stackm
+
+```stackscript header file
+EXTERN SQR
+EXTERN SQRT
+EXTERN PI
+EXTERN PHI
+EXTERN E
+```
 
 ---
 
@@ -90,4 +134,3 @@ STACKSCRIPT is released under the MIT License.
 ## Author
 
 Designed and developed for educational and sandbox computing experimentation.
-
