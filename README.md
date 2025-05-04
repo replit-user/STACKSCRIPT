@@ -111,6 +111,10 @@ CALL myFunction
 
 ---
 
+###importing
+
+LOAD <module_name>
+
 ## 📝 Example
 
 ```stack
