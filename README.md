@@ -80,7 +80,6 @@ python STACKSCRIPT.py path/to/code.stack
 Modules allow code reuse and separation.
 
 * Functions defined inside modules can be selectively exported.
-* Use `espm` to manage module installation.
 
 ---
 
