@@ -84,33 +84,7 @@ Modules allow code reuse and separation.
 
 ---
 
-# ESPM - The STACKSCRIPT Package Manager
-
-`espm` is the official package manager for STACKSCRIPT.
-
-## Usage
-
-```bash
-python espm.py install <module_name>
-python espm.py remove <module_name>
-python espm.py list
-```
-
-### Commands
-
-| Command      | Description                |
-| ------------ | -------------------------- |
-| install name | Install module by name     |
-| remove name  | Remove installed module    |
-| list         | List all installed modules |
-
-Modules are stored in a central registry and loaded when called from STACKSCRIPT.
-
----
-
-## License
-
-STACKSCRIPT and ESPM are released under the MIT License.
+STACKSCRIPT is released under the MIT License.
 
 ---
 
