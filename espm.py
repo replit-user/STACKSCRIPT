@@ -93,3 +93,5 @@ async def main():
             )
         
         print("Update successful" if response.ok else f"Error: {response.text}")
+
+main()
