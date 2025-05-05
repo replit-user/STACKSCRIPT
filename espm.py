@@ -47,7 +47,8 @@ if args.command == "install":
         
 elif args.command == "uninstall":
     validate_name(args.name)
-    safe_delete(args.name)
+    safe_delete(f"{args.name}.stack")
+    safe_delete(f"{args.name}.stackm")
     print(f"Uninstalled {args.name}")
 
 elif args.command == "publish":
