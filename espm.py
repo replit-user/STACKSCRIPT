@@ -4,7 +4,7 @@ import os
 import zipfile
 import shutil
 import re  # For input sanitization
-
+import asyncio
 BASE_URL = "espm-backend.onrender.com"
 
 parser = argparse.ArgumentParser(description="the official STACKSCRIPT package manager")
@@ -32,7 +32,7 @@ async def main():
             exit(1)
         
         validate_name(args.name)
-        response = await requests.get(f"https://{BASE_URL}/download/{args.name}/{args.version}")
+        response = requests.get(f"https://{BASE_URL}/download/{args.name}/{args.version}")
         
         if response.status_code == 200:
             zip_filename = f"{args.name}.zip"
@@ -65,7 +65,7 @@ async def main():
             exit(1)
         
         with open(stack_file, "rb") as s, open(stackm_file, "rb") as m:
-            response = await requests.post(
+            response = requests.post(
                 url=f"https://{BASE_URL}/upload",
                 data={"name": args.name, "version": args.version},
                 files={"stack": s, "stackm": m}
@@ -87,11 +87,11 @@ async def main():
             exit(1)
         
         with open(stack_file, "rb") as s, open(stackm_file, "rb") as m:
-            response = await requests.post(
+            response = requests.post(
                 url=f"https://{BASE_URL}/update/{args.name}/{args.version}",
                 files={"stack": s, "stackm": m}
             )
         
         print("Update successful" if response.ok else f"Error: {response.text}")
 
-main()
+asyncio.run(main())
