@@ -207,6 +207,8 @@ def execute(instruction: str, current_module: Optional[str] = None) -> None:
             elif func_target in functions:
                 for instr in functions[func_target]:
                     execute(instr, current_module)
+                    if args.debug:
+                        print(f"PC: {program_counter + 1}, Stack: {mem.mem[:mem.pointer]}, Stack2: {mem2.mem[:mem2.pointer]}, Instruction: {instr}")
             else:
                 print(f"Function {func_target} not found.")
                 exit()
