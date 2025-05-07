@@ -1,15 +1,24 @@
-from sys import argv, exit
+from sys import exit
 from collections import defaultdict
 import os
 import random
 from typing import Optional
+from argparse import ArgumentParser
+
+
+parser = ArgumentParser(description="StackScript Interpreter")
+parser.add_argument("path", type=str, help="Path to the StackScript file")
+parser.add_argument("-d", "--debug", action="store_true", help="Enable debug mode")
+args = parser.parse_args()
+if args.debug:
+    print("Debug mode enabled")
 
 functions = defaultdict(list)
 modules = defaultdict(dict)  # Maps module names to their functions dict
 exported_functions = defaultdict(set)  # Maps module names to exported function names
 program_counter = 0
 compare_slot = False
-PATH = argv[1]
+PATH = args.path
 SIZE = 30000
 
 with open(PATH, "r") as f:
@@ -280,6 +289,11 @@ def execute(instruction: str, current_module: Optional[str] = None) -> None:
         module_funcs, _ = parse_code(module_lines)
         modules[module_name] = module_funcs
         exported_functions[module_name] = set(exported)
+    elif opcode == "BREAKPOINT" and args.debug:
+        print(f"Breakpoint at line {program_counter + 1}: {instruction}")
+        input("Press Enter to continue...")
+    elif opcode == "BREAKPOINT" and not args.debug:
+        None
     else:
         if not opcode.endswith(":"):
             print(f"Unrecognized opcode: {opcode}")
@@ -288,5 +302,7 @@ def execute(instruction: str, current_module: Optional[str] = None) -> None:
 readfunc()
 while program_counter < len(main_code):
     execute(main_code[program_counter])
+    if args.debug:
+        print(f"PC: {program_counter + 1}, Stack: {mem.mem[:mem.pointer]}, Stack2: {mem2.mem[:mem2.pointer]}, Instruction: {main_code[program_counter]}")
     if not jump_occurred:
         program_counter += 1
