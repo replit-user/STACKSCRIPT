@@ -197,6 +197,8 @@ def execute(instruction: str, current_module: Optional[str] = None) -> None:
             # Execute the function in the module's context
             for instr in modules[module_name][func_name]:
                 execute(instr, module_name)
+                if args.debug:
+                    print(f"PC: {program_counter + 1}, Stack: {mem.mem[:mem.pointer]}, Stack2: {mem2.mem[:mem2.pointer]}, Instruction: {instr}")
         else:
             # Unqualified call, check current module first
             if current_module is not None and func_target in modules[current_module]:
@@ -302,7 +304,7 @@ def execute(instruction: str, current_module: Optional[str] = None) -> None:
 readfunc()
 while program_counter < len(main_code):
     execute(main_code[program_counter])
-    if args.debug:
+    if args.debug and not main_code[program_counter].startswith("CALL"):
         print(f"PC: {program_counter + 1}, Stack: {mem.mem[:mem.pointer]}, Stack2: {mem2.mem[:mem2.pointer]}, Instruction: {main_code[program_counter]}")
     if not jump_occurred:
         program_counter += 1
