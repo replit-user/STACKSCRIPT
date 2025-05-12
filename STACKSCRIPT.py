@@ -5,10 +5,10 @@ import random
 from typing import Optional
 from argparse import ArgumentParser
 
-
-parser = ArgumentParser(description="StackScript Interpreter")
-parser.add_argument("path", type=str, help="Path to the StackScript file")
+parser = ArgumentParser(description="STACKSCRIPT Interpreter")
+parser.add_argument("path", type=str, help="Path to the STACKSCRIPT file")
 parser.add_argument("-d", "--debug", action="store_true", help="Enable debug mode")
+parser.add_argument("-v", "--version", action="version", version="%(prog)s 1.0", help="Show version and exit")
 args = parser.parse_args()
 if args.debug:
     print("Debug mode enabled")
@@ -17,7 +17,7 @@ functions = defaultdict(list)
 modules = defaultdict(dict)  # Maps module names to their functions dict
 exported_functions = defaultdict(set)  # Maps module names to exported function names
 program_counter = 0
-compare_slot = False
+variables = defaultdict(float)
 PATH = args.path
 SIZE = 30000
 
@@ -103,6 +103,9 @@ def execute(instruction: str, current_module: Optional[str] = None) -> None:
     jump_occurred = False
     parts = instruction.split(" ")
     parts = [p.strip() for p in parts]
+    for i in range(len(parts)):
+        if parts[i].startswith("%VAR<") and parts[i].removeprefix("%VAR").removesuffix(">") in variables:
+            parts[i] = str(variables[parts[i].removeprefix("%VAR")])
     if not parts:
         return
     opcode = parts[0]
@@ -298,6 +301,8 @@ def execute(instruction: str, current_module: Optional[str] = None) -> None:
         input("Press Enter to continue...")
     elif opcode == "BREAKPOINT" and not args.debug:
         None
+    elif opcode == "SET":
+        variables[parts[1]] = float(parts[2]) if '.' in parts[2] else int(parts[2])
     else:
         if not opcode.endswith(":"):
             print(f"Unrecognized opcode: {opcode}")
