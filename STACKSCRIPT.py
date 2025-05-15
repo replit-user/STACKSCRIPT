@@ -6,12 +6,15 @@ from typing import Optional
 from argparse import ArgumentParser
 
 parser = ArgumentParser(description="STACKSCRIPT Interpreter")
-parser.add_argument("path", type=str, help="Path to the STACKSCRIPT file")
+parser.add_argument("--path","-p", type=str, help="Path to the STACKSCRIPT file")
 parser.add_argument("-d", "--debug", action="store_true", help="Enable debug mode")
 parser.add_argument("-v", "--version", action="version", version="%(prog)s 1.0", help="Show version and exit")
+parser.add_argument("args", nargs="*", help="the arguments to pass to the script")
 args = parser.parse_args()
 if args.debug:
     print("Debug mode enabled")
+
+SCRIPT_ARGS = args.args
 
 functions = defaultdict(list)
 modules = defaultdict(dict)  # Maps module names to their functions dict
@@ -20,6 +23,11 @@ program_counter = 0
 variables = defaultdict(float)
 PATH = args.path
 SIZE = 30000
+
+i = 0
+for arg in SCRIPT_ARGS:
+    variables[f"%ARG{i}"] = arg
+    i += 1
 
 with open(PATH, "r") as f:
     CODE = f.read().splitlines()
@@ -201,7 +209,7 @@ def execute(instruction: str, current_module: Optional[str] = None) -> None:
             for instr in modules[module_name][func_name]:
                 execute(instr, module_name)
                 if args.debug:
-                    print(f"PC: {program_counter + 1}, Stack: {mem.mem[:mem.pointer]}, Stack2: {mem2.mem[:mem2.pointer]}, Instruction: {instr}")
+                    print(f"variables: {variables}, PC: {program_counter + 1}, Stack: {mem.mem[:mem.pointer]}, Stack2: {mem2.mem[:mem2.pointer]}, Instruction: {instr}")
         else:
             # Unqualified call, check current module first
             if current_module is not None and func_target in modules[current_module]:
@@ -211,7 +219,7 @@ def execute(instruction: str, current_module: Optional[str] = None) -> None:
                 for instr in functions[func_target]:
                     execute(instr, current_module)
                     if args.debug:
-                        print(f"PC: {program_counter + 1}, Stack: {mem.mem[:mem.pointer]}, Stack2: {mem2.mem[:mem2.pointer]}, Instruction: {instr}")
+                        print(f"variables: {variables}, PC: {program_counter + 1}, Stack: {mem.mem[:mem.pointer]}, Stack2: {mem2.mem[:mem2.pointer]}, Instruction: {instr}")
             else:
                 print(f"Function {func_target} not found.")
                 exit()
@@ -312,6 +320,6 @@ readfunc()
 while program_counter < len(main_code):
     execute(main_code[program_counter])
     if args.debug and not main_code[program_counter].startswith("CALL"):
-        print(f"PC: {program_counter + 1}, Stack: {mem.mem[:mem.pointer]}, Stack2: {mem2.mem[:mem2.pointer]}, Instruction: {main_code[program_counter]}")
+        print(f"variables: {variables}, PC: {program_counter + 1}, Stack: {mem.mem[:mem.pointer]}, Stack2: {mem2.mem[:mem2.pointer]}, Instruction: {main_code[program_counter]}")
     if not jump_occurred:
         program_counter += 1
