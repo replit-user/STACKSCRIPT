@@ -233,7 +233,6 @@ def execute(instruction: str, current_module: Optional[str] = None) -> None:
             mem2.push(float(parts[1]))
         else:
             mem2.push(int(parts[1]))
-        mem2.push(parts[1])
     elif opcode == "PUD":
         mem2.push(mem.top())
     elif opcode == "SWAP":
