@@ -104,8 +104,8 @@ def execute(instruction: str, current_module: Optional[str] = None) -> None:
     parts = instruction.split(" ")
     parts = [p.strip() for p in parts]
     for i in range(len(parts)):
-        if parts[i].startswith("%VAR") and parts[i].removeprefix("%VAR") in variables:
-            parts[i] = str(variables[parts[i].removeprefix("%VAR")])
+        if parts[i].startswith("%VAR") and parts[i].removeprefix("%VAR<").removesuffix(">") in variables:
+            parts[i] = str(variables[parts[i].removeprefix("%VAR<").removesuffix(">")])
     if not parts:
         return
     opcode = parts[0]
