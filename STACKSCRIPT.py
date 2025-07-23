@@ -4,7 +4,7 @@ import os
 import random
 from typing import Optional
 from argparse import ArgumentParser
-
+from sys import argv
 parser = ArgumentParser(description="STACKSCRIPT Interpreter")
 parser.add_argument("--path","-p", type=str, help="Path to the STACKSCRIPT file")
 parser.add_argument("-d", "--debug", action="store_true", help="Enable debug mode")
@@ -15,6 +15,7 @@ if args.debug:
     print("Debug mode enabled")
 
 SCRIPT_ARGS = args.args
+SCRIPT_ARGS.insert(0,args.path)
 
 functions = defaultdict(list)
 modules = defaultdict(dict)  # Maps module names to their functions dict
