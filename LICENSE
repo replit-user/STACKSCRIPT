@@ -1,4 +1,8 @@
-Responsible Sharing License v1.0
+# Responsible Sharing License v1.0
+
+This license governs the use, modification, and redistribution of \[Your Project\] (“the Software”) and any associated mods.
+
+---
 
 ## **Section 1: Software Itself**
 
@@ -36,3 +40,43 @@ Responsible Sharing License v1.0
 **You may NOT:**
 
 1.  Resell or distribute the Software bundled with your mod as the default configuration.
+    
+
+---
+
+## **Section 3: Past Versions**
+
+Past versions of the Software are exempt from most rules in this license. The following still applies:
+
+1.  You may NOT publish or sell a malicious version of a past release.
+    
+2.  You must give proper credit to the original author when publishing or selling past versions.
+    
+
+---
+
+## **Section 4: Monetization**
+
+**You may:**
+
+1.  Republish or sell a modified version of the Software with proper credit to the original author.
+    
+
+**You may NOT:**
+
+1.  Republish or sell the original, unmodified Software.
+    
+2.  Publish a malicious version of the Software.
+    
+
+> This license **does not entitle the original author to any revenue** from modified versions, third-party merchandise, or any other third-party products derived from the Software.
+
+---
+
+## **Section 5: Warranties**
+
+The Software is provided **as-is**. After download, any damage or issues are your responsibility.
+
+-   No warranties are issued.
+    
+-   If the Software remains hosted on GitHub, Bitbucket, or GitLab, it may be redownloaded at no additional cost.
