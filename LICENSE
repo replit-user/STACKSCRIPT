@@ -80,3 +80,21 @@ The Software is provided **as-is**. After download, any damage or issues are you
 -   No warranties are issued.
     
 -   If the Software remains hosted on GitHub, Bitbucket, or GitLab, it may be redownloaded at no additional cost.
+
+
+
+The term “malicious” is ambiguous. For this license, Software is considered malicious if it meets any one of the following criteria, regardless of intent:
+
+1. It actively tries to harm, delete, or modify data, or compromise data integrity.
+2. It actively tries to modify its own code or the code of other programs on disk.
+3. It compromises system or application security.
+4. It is flagged by default antivirus tools in Windows, Ubuntu Linux, or Google Drive.
+5. Any action is taken without the user’s knowledge or permission.
+
+Only one of these points needs to be met for the Software to be considered malicious.
+
+Examples of malicious software include, but are not limited to:
+- Wannacry ransomware
+- An assembly program intended to be loaded at a specific memory address but loaded elsewhere, attempting to access another program’s memory
+- An MP3 file edited to execute arbitrary code
+- A Python script that deletes all files in a directory
