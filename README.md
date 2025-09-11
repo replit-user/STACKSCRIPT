@@ -177,12 +177,6 @@ This project is licensed under the **Responsible Sharing License v1.0**.
 Please see the [LICENSE](LICENSE) file for full details.
 
 ---
-
-## Credits
-
--   Original author: `hnte nht`
-    
--   STACKSCRIPT Interpreter developed in Python.
     
 
 ---
