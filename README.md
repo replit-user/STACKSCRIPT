@@ -37,7 +37,7 @@
 1.  Clone the repository:
     
     ```bash
-    git clone https://github.com/yourusername/stackscripts.git
+    git clone https://github.com/replit-user/STACKSCRIPT
     ```
     
 2.  Ensure you have Python 3.10+ installed.
