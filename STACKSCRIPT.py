@@ -46,6 +46,7 @@ class stack:
 
     def pop(self):
         self.pointer -= 1
+        variables["last_pop"] = self.mem[self.pointer]
         return self.mem[self.pointer]
 
     def top(self):
