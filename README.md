@@ -1,182 +1,254 @@
-
 # STACKSCRIPT
 
-[](LICENSE)
+STACKSCRIPT is a simple stack-based scripting language and a Python interpreter.
+Scripts execute line-by-line (top-to-bottom), similar to how Python runs a script.
 
-[](LICENSE)
-
-**STACKSCRIPT** is a custom, stack-based programming language designed for educational and experimental purposes. It features dual stacks, modular scripting, and direct file & system operations.
+Functions may be defined anywhere in the file and can be called before their definitions because the interpreter performs a pre-pass to collect all functions.
 
 ---
 
-## Features
+## Key ideas
 
--   **Stack-based execution**: Primary and secondary stacks (`mem` and `mem2`) for advanced data manipulation.
-    
--   **Arithmetic operations**: `ADD`, `SUB`, `MUL`, `DIV`, `EXP`.
-    
--   **Control flow**: Conditional and unconditional jumps (`JMP`, `JMPGT`, `JMPLT`, `JMPEQ`).
-    
--   **Input/Output**: `READ`, `SPREAD`, `OUT`, `OUTV`, `SPOUTV`.
-    
--   **File operations**: `READFILE`, `WRITEFILE`, `APPENDFILE`, `DELETEFILE`, `CREATEFILE`, `CREATEFOLDER`, `DELETEFOLDER`.
-    
--   **Randomization**: `RANDINT`, `RANDOM`, `CHOICE-1`, `CHOICE-2`.
-    
--   **Module system**: Load `.stack` and `.stackm` modules with `LOAD` and call exported functions across modules.
-    
--   **Debugging**: `BREAKPOINT` shows stack and variable states when `--debug` is enabled.
-    
--   **System interaction**: Run system commands with `SYSTEM`.
-    
+* **No `main` function** — all top-level lines are executed in order.
+* **Forward-declared functions** — functions defined later in the file are callable earlier.
+* **Two stacks** — `mem` (main) and `mem2` (secondary).
+* **Modules** — `.stack` source files with `.stackm` export descriptors.
+* **Variable notation** — variables (including script arguments) are referenced as `%VAR<<name>>` inside scripts.
 
 ---
 
 ## Installation
 
-1.  Clone the repository:
-    
-    ```bash
-    git clone https://github.com/replit-user/STACKSCRIPT
-    ```
-    
-2.  Ensure you have Python 3.10+ installed.
-    
-3.  Run your `.stack` scripts using the interpreter:
-    
-    ```bash
-    python stackscript.py --path your_script.stack [args...] [--debug]
-    ```
-    
+Requires Python 3.8+.
+
+```bash
+git clone https://github.com/youruser/stackscript.git
+cd stackscript
+python stackscript.py -p examples/hello.stack
+```
 
 ---
 
-## Getting Started
-
-1.  **Create a STACKSCRIPT file**:
-    
-
-```stack
-PUSH 5
-PUSH 10
-ADD
-OUTV         ; Prints 15
-HALT
-```
-
-2.  **Run the script**:
-    
+## Usage
 
 ```bash
-python stackscript.py --path example.stack
+python stackscript.py --path <script.stack> [options] [args...]
 ```
 
-3.  **Passing arguments**:
-    
+### Options
 
-```stack
-; Access arguments via %ARG0, %ARG1, etc.
-OUT %ARG0
-```
+* `-p, --path <file>` : Path to the `.stack` script file (required).
+* `-d, --debug` : Enable debug mode (prints runtime state and activates `BREAKPOINT`).
+* `-v, --version` : Show interpreter version and exit.
+* `args` : Extra arguments passed to the script (available as `%VAR<<ARGn>>`).
+
+### How arguments are exposed inside scripts
+
+When you run:
 
 ```bash
-python stackscript.py --path example.stack Hello World
+python stackscript.py -p myscript.stack foo bar
+```
+
+the interpreter populates special variables that are accessible from the script using the **`%VAR<<...>>`** notation:
+
+* `%VAR<<ARG0>>` → the script path provided to `--path` (here: `myscript.stack`)
+* `%VAR<<ARG1>>` → `foo`
+* `%VAR<<ARG2>>` → `bar`
+
+You can use these anywhere a token is read. Example:
+
+```text
+OUT "Script path:"
+OUT %VAR<<ARG0>>
+OUT "First user arg:"
+OUT %VAR<<ARG1>>
+```
+
+**Note:** every variable (including `%VAR<<ARGn>>`) uses the same `%VAR<<name>>` notation.
+
+---
+
+## Variable usage
+
+* Create a variable with `SET <name> <value>` (numbers only in the current interpreter).
+* Reference variables using `%VAR<<name>>`.
+
+Example:
+
+```text
+SET counter 10
+PUSH %VAR<<counter>>
+```
+
+Substitution occurs before the instruction is executed and is token-based — the interpreter replaces tokens that exactly match the `%VAR<<name>>` pattern with their stored string value.
+
+---
+
+## Language reference (important opcodes)
+
+### Stack operations
+
+* `PUSH <num>` — push number to main stack (`mem`)
+* `POP` — pop from main stack
+* `TOP` — duplicate top of main stack (pushes top value)
+* `BOTOP` — push value at address 0 of `mem`
+
+### Secondary stack
+
+* `SPUSH <num>` — push number to secondary stack (`mem2`)
+* `PUD` — push main-stack top onto secondary stack
+* `DUP` — push secondary-stack top onto main stack
+* `SPOUTV` — print secondary-stack top
+
+### Arithmetic
+
+* `ADD`, `SUB`, `MUL`, `DIV`, `EXP` — binary ops: pop two operands and push the result. (`DIV` pushes `0` on divide-by-zero.)
+
+### Control flow
+
+* `JMP <line>` — unconditional jump to a top-level line number (1-based)
+* `JMPGT <value> <line>` — jump if `mem.top() > value`
+* `JMPLT <value> <line>` — jump if `mem.top() < value`
+* `JMPEQ <value> <line>` — jump if `mem.top() == value`
+
+> **Important:** line numbers used by `JMP` and relatives refer only to the *top-level instruction list* (function bodies are not counted in those line numbers).
+
+### Functions
+
+Define a function:
+
+```text
+myfunc:
+    PUSH 10
+    PUSH 20
+    ADD
+ENDFUNC
+```
+
+Call it with:
+
+```text
+CALL myfunc
+```
+
+Because of the pre-pass, `CALL myfunc` can appear before the `myfunc:` definition in the file.
+
+### Modules
+
+Modules are two files:
+
+* `modulename.stack` — function definitions
+* `modulename.stackm` — export list (lines starting with `EXTERN` list exported functions)
+
+Load and call:
+
+```text
+LOAD mymodule
+CALL mymodule.exported_func
+```
+
+Only functions listed in `EXTERN` inside `modulename.stackm` are callable from other modules.
+
+### I/O & filesystem
+
+* `READ` / `SPREAD` — read number into `mem` / `mem2`
+* `OUT <text>` — print text
+* `OUTV` — print top of `mem`
+* `READFILE <file>`, `WRITEFILE <file> <text>`, `APPENDFILE <file> <text>`, `DELETEFILE <file>`, `CREATEFILE <file> <text>`
+* `CREATEFOLDER <path>`, `DELETEFOLDER <path>`
+
+### Misc
+
+* `SYSTEM <cmd>` — run OS command
+* `RANDINT <a> <b>`, `RANDOM <scale>`, `CHOICE-*` — random utilities
+* `CLEAR` — reset main stack
+* `SWAPMEM` — swap main and secondary stacks
+* `HALT` — exit interpreter
+* `SET <name> <value>` — set a variable (accessible via `%VAR<<name>>`)
+
+---
+
+## Execution model (how the interpreter runs your file)
+
+1. **Pre-pass**: parse the entire file and collect all function definitions into a functions table; collect top-level lines into a separate list.
+2. **Execution**: run the top-level instructions in order (line-by-line).
+3. `CALL` looks up functions (current module first, then parsed functions). Forward references work because of the pre-pass.
+4. `JMP` and relatives use 1-based indices into the top-level list (functions are excluded from these counts).
+
+---
+
+## Examples
+
+### Example — forward call
+
+```text
+CALL hello
+OUT "After call"
+
+hello:
+    PUSH 42
+    OUTV
+ENDFUNC
 ```
 
 Output:
 
-```nginx
-Hello
+```
+42
+After call
 ```
 
-4.  **Debug mode**:
-    
+### Example — using arguments
+
+**myscript.stack**
+
+```text
+OUT "Script path:"
+OUT %VAR<<ARG0>>
+OUT "First arg:"
+OUT %VAR<<ARG1>>
+```
+
+Run:
 
 ```bash
-python stackscript.py --path example.stack --debug
+python stackscript.py -p myscript.stack one two
 ```
 
-This prints variable states, program counter, and stack contents at each step.
+Output:
 
----
-
-## Opcode Reference
-
-| Opcode | Description |
-| --- | --- |
-| `PUSH <num>` | Push a number onto the primary stack. |
-| `POP` | Remove the top element of the primary stack. |
-| `TOP` | Duplicate the top value of the primary stack. |
-| `BOTOP` | Push the bottom value of the primary stack to the top. |
-| `DUP` | Push the top value of the secondary stack onto the primary stack. |
-| `SPUSH <num>` | Push a number onto the secondary stack. |
-| `PUD` | Push the top value of the primary stack onto the secondary stack. |
-| `SWAP <a> <b>` | Swap values at two indices in the primary stack. |
-| `S-SWAP <a> <b>` | Swap values at two indices in the secondary stack. |
-| `ADD` | Pop two values from the primary stack, add, and push result. |
-| `SUB` | Pop two values from the primary stack, subtract, and push result. |
-| `MUL` | Pop two values from the primary stack, multiply, and push result. |
-| `DIV` | Pop two values from the primary stack, divide, and push result (0 if divide by 0). |
-| `EXP` | Pop two values from the primary stack, exponentiate, and push result. |
-| `READ` | Read user input as number and push to primary stack. |
-| `SPREAD` | Read user input as number and push to secondary stack. |
-| `OUT <text>` | Print text. |
-| `OUTV` | Print the top value of the primary stack. |
-| `SPOUTV` | Print the top value of the secondary stack. |
-| `JMP <line>` | Unconditional jump to line number. |
-| `JMPGT <val> <line>` | Jump if top of primary stack > val. |
-| `JMPLT <val> <line>` | Jump if top of primary stack < val. |
-| `JMPEQ <val> <line>` | Jump if top of primary stack == val. |
-| `CALL <func>` | Call a function from the current module or loaded module. |
-| `LOAD <module>` | Load a `.stack` module and its exports. |
-| `SET <var> <val>` | Define a variable in memory. |
-| `COPY <addr>` | Copy value from memory address onto the primary stack. |
-| `CLEAR` | Reset primary stack. |
-| `SWAPMEM` | Swap primary and secondary stacks. |
-| `CHOICE-1 <options>` | Push a random value from listed options. |
-| `CHOICE-2 <n>` | Pop `n` values from primary stack and push a random one. |
-| `RANDINT <min> <max>` | Push random integer in range. |
-| `RANDOM <max>` | Push random float in range `[0, max)`. |
-| `SYSTEM <cmd>` | Execute system command. |
-| `READFILE <file>` | Print file contents. |
-| `WRITEFILE <file> <text>` | Overwrite file with text. |
-| `APPENDFILE <file> <text>` | Append text to file. |
-| `DELETEFILE <file>` | Delete a file. |
-| `CREATEFILE <file> <text>` | Create a new file with text. |
-| `CREATEFOLDER <folder>` | Create a new folder. |
-| `DELETEFOLDER <folder>` | Delete a folder. |
-| `HALT` | Stop execution. |
-| `BREAKPOINT` | Pause execution in debug mode. |
-
----
-
-## Modules
-
--   Modules are `.stack` and `.stackm` files.
-    
--   `.stackm` contains `EXTERN func1 func2 ...` for exported functions.
-    
--   Call cross-module functions:
-    
-
-```stack
-CALL module.func
+```
+Script path:
+myscript.stack
+First arg:
+one
 ```
 
 ---
 
-## Contributing
+## Debugging
 
-STACKSCRIPT is open for modification, experimentation, and learning. Please follow the **Responsible Sharing License v1.0 (RSL 1.0)** for contributions and redistributions.
+* Run with `-d` to enable debug logging and `BREAKPOINT` support:
+
+```bash
+python stackscript.py -p script.stack -d
+```
+
+Debug prints show: `variables`, `PC` (1-based), the visible portion of both stacks, and the current instruction.
+
+---
+
+## Notes & caveats
+
+* `%VAR<<name>>` is the canonical variable reference format (this includes `%VAR<<ARGn>>`).
+* Substitution is token-based and done before executing an instruction.
+* `JMP`/`JMPGT`/`JMPLT`/`JMPEQ` count top-level lines only; function definitions do not affect those line numbers.
+* Division by zero pushes `0` instead of raising an exception.
+* Module loading expects `<module>.stack` and `<module>.stackm` files to be present in the current working directory.
 
 ---
 
 ## License
 
-This project is licensed under the **Responsible Sharing License v1.0**.  
-Please see the [LICENSE](LICENSE) file for full details.
-
----
-    
-
----
+MIT
